@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: quora_automation_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root_secure_pass_123
+      MYSQL_DATABASE: quora_automation
+      MYSQL_USER: quora_user
+      MYSQL_PASSWORD: Quora@SecurePass123!
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - quora_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+      interval: 5s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quora_automation_app
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql
+      DB_USER: quora_user
+      DB_PASSWORD: Quora@SecurePass123!
+      DB_NAME: quora_automation
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      LOG_LEVEL: INFO
+    volumes:
+      - ./logs:/app/logs
+      - ./app:/app
+    networks:
+      - quora_net
+    restart: unless-stopped
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: quora_automation_phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: quora_user
+      PMA_PASSWORD: Quora@SecurePass123!
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
+    networks:
+      - quora_net
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+
+networks:
+  quora_net:
+    driver: bridge

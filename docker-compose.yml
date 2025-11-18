@@ -1,0 +1,62 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: quora_automation_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: quora_automation
+      MYSQL_USER: quora_user
+      MYSQL_PASSWORD: Quora@123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - quora_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  app:
+    image: python:3.11-slim
+    container_name: quora_automation_app
+    depends_on:
+      - mysql
+    working_dir: /app
+    command: bash -c "pip install requests openai mysql-connector-python python-dotenv Flask APScheduler && python main.py"
+    environment:
+      DB_HOST: mysql
+      DB_USER: quora_user
+      DB_PASSWORD: Quora@123
+      DB_NAME: quora_automation
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    volumes:
+      - .:/app
+    ports:
+      - "5000:5000"
+    networks:
+      - quora_net
+    restart: always
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: quora_automation_phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: quora_user
+      PMA_PASSWORD: Quora@123
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
+    networks:
+      - quora_net
+    restart: always
+
+volumes:
+  mysql_data:
+
+networks:
+  quora_net:
+    driver: bridge
