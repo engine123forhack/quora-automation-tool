@@ -8,3 +8,7 @@ node_modules/
 __pycache__/
 *.pyc
 .docker
+.env
+.env.local
+*.key
+secrets/
