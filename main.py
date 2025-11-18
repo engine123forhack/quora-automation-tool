@@ -39,3 +39,25 @@ def main():
 
 if __name__ == "__main__":
     main()
+from flask import Flask, jsonify
+import threading
+import time
+
+app = Flask(__name__)
+
+@app.route('/api/health')
+def health():
+    return jsonify({"status": "healthy"})
+
+def flask_thread():
+    app.run(host='0.0.0.0', port=10000)
+
+if __name__ == "__main__":
+    # Flask server background में चलाओ
+    t = threading.Thread(target=flask_thread)
+    t.daemon = True
+    t.start()
+    # तुम यहां अपना main automation logic भी चला सकते हो
+    while True:
+        # पुराने infinite loop जैसा, actual काम करो (या बस demo)
+        time.sleep(60)
