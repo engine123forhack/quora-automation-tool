@@ -1,0 +1,10 @@
+.env
+.env.local
+*.key
+*.pem
+secrets/
+.DS_Store
+node_modules/
+__pycache__/
+*.pyc
+.docker
